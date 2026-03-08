@@ -3,7 +3,6 @@ numpy
 scikit-learn
 xgboost
 tensorflow
-keras
 shap
 streamlit
 plotly
