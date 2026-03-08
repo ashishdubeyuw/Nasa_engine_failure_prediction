@@ -12,7 +12,7 @@ This project contains a complete, production-quality implementation covering Des
 ## Setup Instructions
 
 1. **Install Requirements**
-   Ensure you have Python 3.9+ installed. Run the following command from the project root:
+   Ensure you have Python 3.9+ installed. For Streamlit Community Cloud deployments, this repo pins Python 3.12.3 via `runtime.txt` because TensorFlow requires a supported Python runtime. Run the following command from the project root:
    ```bash
    pip install -r requirements.txt
    ```
