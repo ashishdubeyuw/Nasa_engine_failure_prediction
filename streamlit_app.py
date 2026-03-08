@@ -207,7 +207,8 @@ with st.spinner("Initializing System Core..."):
     models = load_models()
     best_model = models.get('XGBoost')
     scaler = models['scaler']
-    explainer = get_explainer(best_model)
+    # Use Random Forest for SHAP to avoid XGBoost 3.2.0 compatibility issues on Cloud
+    explainer = get_explainer(models.get('Random Forest'))
 
 # Plotly Default Theme update for transparency
 pio_template = "plotly_white"
