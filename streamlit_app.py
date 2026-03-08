@@ -483,5 +483,11 @@ with tab4:
         ax.spines['right'].set_visible(False)
         ax.spines['left'].set_visible(False)
         
-        shap.plots.waterfall(shap_single[0], show=False)
+        # Scikit-Learn Random Forest outputs 2 classes, meaning the explanation is 3D
+        if len(shap_single.shape) == 3:
+            explanation = shap_single[0, :, 1] # Select positive class
+        else:
+            explanation = shap_single[0]
+            
+        shap.plots.waterfall(explanation, show=False)
         st.pyplot(fig_shap, transparent=True)
