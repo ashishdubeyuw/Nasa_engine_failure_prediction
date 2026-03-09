@@ -382,6 +382,49 @@ with tab3:
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<h3>🧠 NEURAL NETWORK HYPERPARAMETER TUNING</h3>", unsafe_allow_html=True)
+    st.write("Analyzing the impact of architecture depth, learning rates, and regularization on MLP performance via Grid Search.")
+    
+    try:
+        grid_results = pd.read_csv(os.path.join("models", "mlp_grid_search_results.csv"))
+        
+        # Parallel Coordinates require numeric dimensions
+        grid_results['hidden_layers_str'] = grid_results['hidden_layers'].astype(str)
+        unique_layers = grid_results['hidden_layers_str'].unique()
+        layer_map = {val: i for i, val in enumerate(unique_layers)}
+        grid_results['layer_id'] = grid_results['hidden_layers_str'].map(layer_map)
+
+        fig_pc = go.Figure(data=
+            go.Parcoords(
+                line = dict(color = grid_results['val_auc'],
+                            colorscale = 'Tealrose',
+                            showscale = True,
+                            cmin = grid_results['val_auc'].min(),
+                            cmax = grid_results['val_auc'].max()),
+                dimensions = list([
+                    dict(range = [0, len(unique_layers)-1],
+                         tickvals = list(range(len(unique_layers))),
+                         ticktext = [str(x) for x in unique_layers],
+                         label = 'Architecture Layers', values = grid_results['layer_id']),
+                    dict(range = [grid_results['learning_rate'].min(), grid_results['learning_rate'].max()],
+                         label = 'Learning Rate', values = grid_results['learning_rate']),
+                    dict(range = [grid_results['dropout_rate'].min(), grid_results['dropout_rate'].max()],
+                         label = 'Dropout Rate', values = grid_results['dropout_rate']),
+                    dict(range = [grid_results['val_auc'].min(), grid_results['val_auc'].max()],
+                         label = 'Validation AUC', values = grid_results['val_auc'])
+                ])
+            )
+        )
+        fig_pc.update_layout(**layout_updates, margin=dict(l=50, r=50, t=50, b=20))
+        st.plotly_chart(fig_pc, use_container_width=True)
+        
+        best_run = grid_results.loc[grid_results['val_auc'].idxmax()]
+        st.success(f"**Optimal MLP Configuration Found:** Layers: {best_run['hidden_layers']} | LR: {best_run['learning_rate']} | Dropout: {best_run['dropout_rate']} ➔ **Val AUC: {best_run['val_auc']:.4f}**")
+        
+    except FileNotFoundError:
+        st.warning("Hyperparameter grid search results not found. Please wait for the script to finish running.")
+
 # ==========================================
 # TAB 4: REAL-TIME DIAGNOSTICS (ORACLE)
 # ==========================================
