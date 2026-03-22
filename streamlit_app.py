@@ -83,15 +83,18 @@ hr {
 }
 
 /* Tabs Styling - Modern Pill Design */
+div[data-baseweb="tab-list"] {
+    gap: 0.75rem;
+}
 div[data-testid="stTab"] button {
     font-family: 'Orbitron', sans-serif !important;
     font-size: 1.1rem !important;
     color: #64748B !important;
     border-radius: 6px !important;
     padding: 0.5rem 1rem !important;
-    border: 1px solid transparent !important;
+    border: 1px solid rgba(100, 116, 139, 0.35) !important;
     transition: all 0.3s ease;
-    background-color: transparent !important;
+    background-color: rgba(255, 255, 255, 0.65) !important;
 }
 div[data-testid="stTab"] button[aria-selected="true"] {
     background: rgba(255, 255, 255, 0.9) !important;
