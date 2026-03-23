@@ -8,5 +8,5 @@ app = FastAPI(
 
 
 @app.get("/")
-def health_check() -> dict[str, str]:
+def read_root() -> dict[str, str]:
     return {"status": "ok", "service": "nasa-engine-failure-prediction"}
