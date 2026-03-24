@@ -143,9 +143,9 @@ div[data-testid="stTab"] button:hover {
 [data-testid="stSidebar"] { display: none !important; }
 
 .copyright-label {
-    position: fixed;
-    top: 12px;
-    right: 18px;
+    display: block;
+    width: 100%;
+    text-align: right;
     font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     color: #475569;
@@ -153,7 +153,7 @@ div[data-testid="stTab"] button:hover {
     padding: 0.35rem 0.6rem;
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 6px;
-    z-index: 999;
+    margin: 0 0 1rem 0;
 }
 
 </style>
