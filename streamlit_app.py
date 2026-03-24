@@ -225,19 +225,19 @@ layout_updates = dict(
     title_font=dict(family="Orbitron, sans-serif", size=20, color="#0F172A"),
     xaxis=dict(
         tickfont=dict(color="#1E293B"),
-        titlefont=dict(color="#0F172A")
+        title=dict(font=dict(color="#0F172A"))
     ),
     yaxis=dict(
         tickfont=dict(color="#1E293B"),
-        titlefont=dict(color="#0F172A")
+        title=dict(font=dict(color="#0F172A"))
     ),
     legend=dict(
         font=dict(color="#1E293B"),
-        title_font=dict(color="#0F172A")
+        title=dict(font=dict(color="#0F172A"))
     ),
     coloraxis_colorbar=dict(
         tickfont=dict(color="#1E293B"),
-        titlefont=dict(color="#0F172A")
+        title=dict(font=dict(color="#0F172A"))
     )
 )
 
