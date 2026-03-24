@@ -142,6 +142,20 @@ div[data-testid="stTab"] button:hover {
 [data-testid="collapsedControl"] { display: none !important; }
 [data-testid="stSidebar"] { display: none !important; }
 
+.copyright-label {
+    position: fixed;
+    top: 12px;
+    right: 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.75);
+    padding: 0.35rem 0.6rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    z-index: 999;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -254,6 +268,7 @@ st.markdown(
 )
 st.markdown("<h1 style='text-align: center; color: #0F766E; margin-top: -10px;'>NASA C-MAPSS FD004 ANALYSIS</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #B45309; font-family: JetBrains Mono; font-size: 1.1rem; margin-bottom: 2rem;'>AEROSPACE PROGNOSTICS & HEALTH MANAGEMENT</p>", unsafe_allow_html=True)
+st.markdown("<aside class='copyright-label' role='complementary'>Developed by Ashish Dubey, University of Washington</aside>", unsafe_allow_html=True)
 
 # ==========================================
 # MAIN TABS (Instead of Sidebar)
