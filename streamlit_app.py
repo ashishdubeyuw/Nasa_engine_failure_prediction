@@ -400,19 +400,24 @@ with tab3:
     with colA:
         st.markdown("**ROC AUC Performance Curves (Approximation)**")
         x = np.linspace(0, 1, 100)
+        y_xgb = x**(0.1)
+        y_rf = x**(0.25)
+        y_mlp = x**(0.4)
         fig_roc = go.Figure()
-        fig_roc.add_trace(go.Scatter(x=x, y=x**(0.1), mode='lines', name='XGBoost (AUC: 0.98)', line=dict(color='#0F766E', width=3)))
-        fig_roc.add_trace(go.Scatter(x=x, y=x**(0.25), mode='lines', name='Random Forest (AUC: 0.95)', line=dict(color='#0369A1', width=3)))
-        fig_roc.add_trace(go.Scatter(x=x, y=x**(0.4), mode='lines', name='MLP Network (AUC: 0.92)', line=dict(color='#6D28D9', width=3)))
+        fig_roc.add_trace(go.Scatter(x=x, y=y_xgb, mode='lines', name='XGBoost (AUC: 0.98)', line=dict(color='#0F766E', width=3)))
+        fig_roc.add_trace(go.Scatter(x=x, y=y_rf, mode='lines', name='Random Forest (AUC: 0.95)', line=dict(color='#0369A1', width=3)))
+        fig_roc.add_trace(go.Scatter(x=x, y=y_mlp, mode='lines', name='MLP Network (AUC: 0.92)', line=dict(color='#6D28D9', width=3)))
         fig_roc.add_trace(go.Scatter(x=x, y=x, mode='lines', name='Random Baseline', line=dict(dash='dash', color='#94A3B8')))
         
         fig_roc.update_layout(**layout_updates, xaxis_title="False Positive Rate", yaxis_title="True Positive Rate", margin=dict(l=20, r=20, t=50, b=20))
         st.plotly_chart(fig_roc, use_container_width=True)
-        fpr_target_idx = int(np.argmin(np.abs(x - 0.20)))
-        st.caption(
-            f"Interpretation: At ~20% false-positive rate, XGBoost captures about {x[fpr_target_idx]**0.1:.0%} "
-            f"of failures versus {x[fpr_target_idx]**0.25:.0%} for Random Forest and {x[fpr_target_idx]**0.4:.0%} for MLP."
-        )
+        if x.size > 0:
+            fpr_target_idx = int(np.argmin(np.abs(x - 0.20)))
+            fpr_target_idx = max(0, min(fpr_target_idx, x.size - 1))
+            st.caption(
+                f"Interpretation: At ~20% false-positive rate, XGBoost captures about {y_xgb[fpr_target_idx]:.0%} "
+                f"of failures versus {y_rf[fpr_target_idx]:.0%} for Random Forest and {y_mlp[fpr_target_idx]:.0%} for MLP."
+            )
         
     with colB:
         st.markdown("**XGBoost Feature Importance Gini**")
@@ -570,9 +575,10 @@ with tab4:
         fig_g.update_layout(**layout_updates)
         fig_g.update_layout(height=350, margin=dict(t=50, b=0, l=20, r=20))
         st.plotly_chart(fig_g, use_container_width=True)
+        status_description = status_text.split(" ", 1)[1] if " " in status_text else status_text
         st.caption(
             f"Interpretation: The gauge converts your current sensor overrides into a predicted failure risk of {prob*100:.1f}%. "
-            f"Current status is '{status_text.replace('⚠️ ', '').replace('✅ ', '').replace('🚨 ', '')}'."
+            f"Current status is '{status_description}'."
         )
         
         # SHAP Diagram
@@ -602,11 +608,11 @@ with tab4:
             
         shap.plots.waterfall(explanation, show=False)
         st.pyplot(fig_shap, transparent=True)
-        shap_values = np.array(explanation.values)
+        shap_values = np.array(explanation.values).reshape(-1)
         if shap_values.size > 0:
             top_idx = int(np.argmax(np.abs(shap_values)))
             top_feature_name = explanation.feature_names[top_idx] if explanation.feature_names is not None else feature_cols[top_idx]
-            top_contribution = shap_values[top_idx]
+            top_contribution = float(shap_values[top_idx])
             direction = "toward higher failure risk" if top_contribution > 0 else "toward lower failure risk"
             st.caption(
                 f"Interpretation: {str(top_feature_name).upper()} is the strongest local driver ({top_contribution:+.3f}), "
