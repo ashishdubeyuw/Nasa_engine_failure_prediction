@@ -268,7 +268,7 @@ st.markdown(
 )
 st.markdown("<h1 style='text-align: center; color: #0F766E; margin-top: -10px;'>NASA C-MAPSS FD004 ANALYSIS</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #B45309; font-family: JetBrains Mono; font-size: 1.1rem; margin-bottom: 2rem;'>AEROSPACE PROGNOSTICS & HEALTH MANAGEMENT</p>", unsafe_allow_html=True)
-st.markdown("<div class='copyright-label'>Developed by Ashish Dubey, University of Washington</div>", unsafe_allow_html=True)
+st.markdown("<aside class='copyright-label' role='complementary'>Developed by Ashish Dubey, University of Washington</aside>", unsafe_allow_html=True)
 
 # ==========================================
 # MAIN TABS (Instead of Sidebar)
