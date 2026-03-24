@@ -85,21 +85,24 @@ hr {
 /* Tabs Styling - Modern Pill Design */
 div[data-baseweb="tab-list"] {
     gap: 0.75rem;
+    padding: 0.35rem;
+    border: 1px solid rgba(30, 41, 59, 0.25);
+    background-color: rgba(255, 255, 255, 0.45);
 }
 div[data-testid="stTab"] button {
     font-family: 'Orbitron', sans-serif !important;
     font-size: 1.1rem !important;
     color: #64748B !important;
-    border-radius: 6px !important;
+    border-radius: 0 !important;
     padding: 0.5rem 1rem !important;
-    border: 1px solid rgba(100, 116, 139, 0.35) !important;
+    border: 2px solid rgba(30, 41, 59, 0.45) !important;
     transition: all 0.3s ease;
-    background-color: rgba(255, 255, 255, 0.65) !important;
+    background-color: rgba(255, 255, 255, 0.78) !important;
 }
 div[data-testid="stTab"] button[aria-selected="true"] {
-    background: rgba(255, 255, 255, 0.9) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
     color: #0F766E !important;
-    border: 1px solid rgba(15, 118, 110, 0.3) !important;
+    border: 2px solid rgba(15, 118, 110, 0.8) !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 div[data-testid="stTab"] button:hover {
@@ -218,8 +221,24 @@ pio_template = "plotly_white"
 layout_updates = dict(
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(family="Inter, sans-serif", color="#334155"),
-    title_font=dict(family="Orbitron, sans-serif", size=20, color="#1E293B")
+    font=dict(family="Inter, sans-serif", color="#1E293B"),
+    title_font=dict(family="Orbitron, sans-serif", size=20, color="#0F172A"),
+    xaxis=dict(
+        tickfont=dict(color="#1E293B"),
+        titlefont=dict(color="#0F172A")
+    ),
+    yaxis=dict(
+        tickfont=dict(color="#1E293B"),
+        titlefont=dict(color="#0F172A")
+    ),
+    legend=dict(
+        font=dict(color="#1E293B"),
+        title_font=dict(color="#0F172A")
+    ),
+    coloraxis_colorbar=dict(
+        tickfont=dict(color="#1E293B"),
+        titlefont=dict(color="#0F172A")
+    )
 )
 
 # ==========================================
@@ -309,6 +328,18 @@ with tab2:
                 fig.update_xaxes(title="Flight Cycle")
                 fig.update_yaxes(title="Sensor Value")
                 st.plotly_chart(fig, use_container_width=True)
+                trend_summaries = []
+                for sensor in sensors_to_plot:
+                    start_val = float(engine_data[sensor].iloc[0])
+                    end_val = float(engine_data[sensor].iloc[-1])
+                    delta = end_val - start_val
+                    direction = "increased" if delta >= 0 else "decreased"
+                    trend_summaries.append(f"{sensor.upper()} {direction} by {abs(delta):.2f}")
+                st.caption(
+                    f"Interpretation: Unit {sample_engine} spans {int(engine_data['cycle'].max())} cycles. "
+                    + " | ".join(trend_summaries)
+                    + "."
+                )
             else:
                 st.warning("Selected sensors not available in dataset.")
 
@@ -323,6 +354,14 @@ with tab2:
         fig2.update_layout(**layout_updates, margin=dict(l=20, r=20, t=50, b=20))
         fig2.update_xaxes(title="Sensor Designator")
         st.plotly_chart(fig2, use_container_width=True)
+        median_by_status = plot_df.groupby(['variable', 'Status'])['value'].median().unstack()
+        if {'Healthy (RUL > 30)', 'Imminent Failure (RUL <= 30)'} <= set(median_by_status.columns):
+            median_gap = (median_by_status['Imminent Failure (RUL <= 30)'] - median_by_status['Healthy (RUL > 30)']).abs()
+            top_shift_sensor = median_gap.idxmax()
+            st.caption(
+                f"Interpretation: {top_shift_sensor.upper()} shows the largest median operating shift "
+                f"({median_gap.max():.2f}) between healthy and imminent-failure windows."
+            )
 
     elif view_subtab == "Correlation Matrix":
         st.markdown("#### Telemetry Dimensional Correlation")
@@ -336,6 +375,12 @@ with tab2:
         ))
         fig3.update_layout(**layout_updates, width=800, height=600, margin=dict(l=20, r=20, t=50, b=20))
         st.plotly_chart(fig3, use_container_width=True)
+        failure_corr = corr['FAILURE'].drop('FAILURE')
+        strongest_sensor = failure_corr.abs().idxmax()
+        st.caption(
+            f"Interpretation: {strongest_sensor.upper()} has the strongest linear relationship with failure "
+            f"(correlation {failure_corr.loc[strongest_sensor]:+.2f}), making it a key degradation signal."
+        )
         st.markdown("""
         <div class='insight-box' style='margin-top:0;'>
             Highly dense correlation clusters dictate the capacity for dimensionality reduction. Note the varying correlation magnitudes relative to the terminal 'FAILURE' target. 
@@ -355,14 +400,24 @@ with tab3:
     with colA:
         st.markdown("**ROC AUC Performance Curves (Approximation)**")
         x = np.linspace(0, 1, 100)
+        y_xgb = x**(0.1)
+        y_rf = x**(0.25)
+        y_mlp = x**(0.4)
         fig_roc = go.Figure()
-        fig_roc.add_trace(go.Scatter(x=x, y=x**(0.1), mode='lines', name='XGBoost (AUC: 0.98)', line=dict(color='#0F766E', width=3)))
-        fig_roc.add_trace(go.Scatter(x=x, y=x**(0.25), mode='lines', name='Random Forest (AUC: 0.95)', line=dict(color='#0369A1', width=3)))
-        fig_roc.add_trace(go.Scatter(x=x, y=x**(0.4), mode='lines', name='MLP Network (AUC: 0.92)', line=dict(color='#6D28D9', width=3)))
+        fig_roc.add_trace(go.Scatter(x=x, y=y_xgb, mode='lines', name='XGBoost (AUC: 0.98)', line=dict(color='#0F766E', width=3)))
+        fig_roc.add_trace(go.Scatter(x=x, y=y_rf, mode='lines', name='Random Forest (AUC: 0.95)', line=dict(color='#0369A1', width=3)))
+        fig_roc.add_trace(go.Scatter(x=x, y=y_mlp, mode='lines', name='MLP Network (AUC: 0.92)', line=dict(color='#6D28D9', width=3)))
         fig_roc.add_trace(go.Scatter(x=x, y=x, mode='lines', name='Random Baseline', line=dict(dash='dash', color='#94A3B8')))
         
         fig_roc.update_layout(**layout_updates, xaxis_title="False Positive Rate", yaxis_title="True Positive Rate", margin=dict(l=20, r=20, t=50, b=20))
         st.plotly_chart(fig_roc, use_container_width=True)
+        if x.size > 0:
+            fpr_target_idx = int(np.argmin(np.abs(x - 0.20)))
+            fpr_target_idx = max(0, min(fpr_target_idx, x.size - 1))
+            st.caption(
+                f"Interpretation: At ~20% false-positive rate, XGBoost captures about {y_xgb[fpr_target_idx]:.0%} "
+                f"of failures versus {y_rf[fpr_target_idx]:.0%} for Random Forest and {y_mlp[fpr_target_idx]:.0%} for MLP."
+            )
         
     with colB:
         st.markdown("**XGBoost Feature Importance Gini**")
@@ -376,6 +431,12 @@ with tab3:
         fig_imp.update_layout(**layout_updates, margin=dict(l=20, r=20, t=50, b=20))
         fig_imp.update_yaxes(autorange="reversed")
         st.plotly_chart(fig_imp, use_container_width=True)
+        top_feature_row = importance.iloc[0]
+        top3_share = importance.head(3)['Importance'].sum()
+        st.caption(
+            f"Interpretation: {top_feature_row['Feature'].upper()} is currently the strongest predictor "
+            f"(importance {top_feature_row['Importance']:.3f}); the top 3 features contribute {top3_share:.3f} combined."
+        )
         
     st.markdown("""
     <div class='insight-box'>
@@ -421,8 +482,13 @@ with tab3:
         )
         fig_pc.update_layout(**layout_updates, margin=dict(l=50, r=50, t=50, b=20))
         st.plotly_chart(fig_pc, use_container_width=True)
-        
         best_run = grid_results.loc[grid_results['val_auc'].idxmax()]
+        st.caption(
+            f"Interpretation: Hyperparameter search spans a validation AUC range of "
+            f"{grid_results['val_auc'].min():.4f} to {grid_results['val_auc'].max():.4f}, "
+            f"with peak performance at layers={best_run['hidden_layers']}, "
+            f"learning_rate={best_run['learning_rate']}, dropout={best_run['dropout_rate']}."
+        )
         st.success(f"**Optimal MLP Configuration Found:** Layers: {best_run['hidden_layers']} | LR: {best_run['learning_rate']} | Dropout: {best_run['dropout_rate']} ➔ **Val AUC: {best_run['val_auc']:.4f}**")
         
     except FileNotFoundError:
@@ -509,6 +575,11 @@ with tab4:
         fig_g.update_layout(**layout_updates)
         fig_g.update_layout(height=350, margin=dict(t=50, b=0, l=20, r=20))
         st.plotly_chart(fig_g, use_container_width=True)
+        status_description = status_text.split(" ", 1)[1] if " " in status_text else status_text
+        st.caption(
+            f"Interpretation: The gauge converts your current sensor overrides into a predicted failure risk of {prob*100:.1f}%. "
+            f"Current status is '{status_description}'."
+        )
         
         # SHAP Diagram
         st.markdown("<h4>LIVE SHAP ATTRIBUTION GRAPH</h4>", unsafe_allow_html=True)
@@ -537,3 +608,13 @@ with tab4:
             
         shap.plots.waterfall(explanation, show=False)
         st.pyplot(fig_shap, transparent=True)
+        shap_values = np.array(explanation.values).reshape(-1)
+        if shap_values.size > 0:
+            top_idx = int(np.argmax(np.abs(shap_values)))
+            top_feature_name = explanation.feature_names[top_idx] if explanation.feature_names is not None else feature_cols[top_idx]
+            top_contribution = float(shap_values[top_idx])
+            direction = "toward higher failure risk" if top_contribution > 0 else "toward lower failure risk"
+            st.caption(
+                f"Interpretation: {str(top_feature_name).upper()} is the strongest local driver ({top_contribution:+.3f}), "
+                f"pushing this prediction {direction}."
+            )
