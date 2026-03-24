@@ -244,9 +244,14 @@ layout_updates = dict(
 # ==========================================
 # HEADER
 # ==========================================
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/e/e5/NASA_logo.svg", width=120, use_container_width=False)
+st.markdown(
+    """
+    <div style="width:100%; display:flex; justify-content:center; margin-top:0; margin-bottom:0.5rem;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/NASA_logo.svg" width="120" alt="NASA logo" style="display:block;">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 st.markdown("<h1 style='text-align: center; color: #0F766E; margin-top: -10px;'>NASA C-MAPSS FD004 ANALYSIS</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #B45309; font-family: JetBrains Mono; font-size: 1.1rem; margin-bottom: 2rem;'>AEROSPACE PROGNOSTICS & HEALTH MANAGEMENT</p>", unsafe_allow_html=True)
 
