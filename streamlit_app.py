@@ -153,7 +153,7 @@ div[data-testid="stTab"] button:hover {
     padding: 0.35rem 0.6rem;
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 6px;
-    margin: -0.6rem 0 1rem 0;
+    margin: 0 0 1rem 0;
 }
 
 </style>
